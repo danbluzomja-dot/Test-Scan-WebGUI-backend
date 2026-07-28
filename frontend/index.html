@@ -1,0 +1,65 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Test Scan WebGUI - Demo</title>
+    <style>
+      body { font-family: Arial, sans-serif; max-width: 900px; margin: 40px auto; }
+      label { display:block; margin-top: 8px }
+    </style>
+  </head>
+  <body>
+    <h1>Demo - Test Scan WebGUI</h1>
+    <p>This small demo page shows how to use the minimal API. It doesn't include a camera scanner — enter values manually or use a QR scanning app that opens a URL to the server.</p>
+
+    <h2>Login (badge)</h2>
+    <label>Badge ID: <input id="badge" /></label>
+    <button id="btn-login">Login with badge</button>
+    <pre id="login-result"></pre>
+
+    <h2>Product actions</h2>
+    <label>Product barcode: <input id="barcode" /></label>
+    <button id="btn-get">Get product</button>
+    <button id="btn-start">Start step</button>
+    <button id="btn-complete">Complete step</button>
+    <button id="btn-traveler">Download traveler PDF</button>
+
+    <pre id="product-result"></pre>
+
+    <script>
+      async function postJson(url, data) {
+        const res = await fetch(url, {method: 'POST', credentials: 'same-origin', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data)});
+        return res.json();
+      }
+      document.getElementById('btn-login').addEventListener('click', async ()=>{
+        const badge = document.getElementById('badge').value;
+        const r = await postJson('/api/auth/login', {badge_id: badge});
+        document.getElementById('login-result').textContent = JSON.stringify(r, null, 2);
+      });
+
+      document.getElementById('btn-get').addEventListener('click', async ()=>{
+        const barcode = document.getElementById('barcode').value;
+        const res = await fetch('/api/product/' + encodeURIComponent(barcode));
+        const j = await res.json();
+        document.getElementById('product-result').textContent = JSON.stringify(j, null, 2);
+      });
+
+      document.getElementById('btn-start').addEventListener('click', async ()=>{
+        const barcode = document.getElementById('barcode').value;
+        const r = await postJson('/api/product/' + encodeURIComponent(barcode) + '/start', {});
+        document.getElementById('product-result').textContent = JSON.stringify(r, null, 2);
+      });
+
+      document.getElementById('btn-complete').addEventListener('click', async ()=>{
+        const barcode = document.getElementById('barcode').value;
+        const r = await postJson('/api/product/' + encodeURIComponent(barcode) + '/complete', {});
+        document.getElementById('product-result').textContent = JSON.stringify(r, null, 2);
+      });
+
+      document.getElementById('btn-traveler').addEventListener('click', ()=>{
+        const barcode = document.getElementById('barcode').value;
+        window.open('/api/product/' + encodeURIComponent(barcode) + '/traveler.pdf', '_blank');
+      });
+    </script>
+  </body>
+</html>
