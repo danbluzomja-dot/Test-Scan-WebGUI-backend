@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Station Console</title><link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}"></head>
+<body><header><strong>Production Tracker</strong><span id="identity"></span><button class="secondary" id="logout">Sign out</button></header>
+<main class="grid"><section class="card"><p class="eyebrow">STATION CONSOLE</p><h1>Scan traveler</h1>
+<label>Station key<input id="station" placeholder="e.g. QC-1" required></label>
+<label>Employee badge<input id="badge" type="password" placeholder="Scan badge" required></label>
+<label>Traveler or action token<input id="token" placeholder="Scan QR or paste token" required></label>
+<div id="step-fields"></div>
+<div class="actions"><button id="submit">Submit scan</button><button class="secondary" id="camera">Use camera</button></div>
+<video id="video" hidden playsinline></video><p id="message" role="status"></p></section>
+<section class="card"><p class="eyebrow">CURRENT PRODUCT</p><div id="product" class="empty">No product scanned yet.</div></section></main>
+<script src="{{ url_for('static', filename='station.js') }}"></script></body></html>
