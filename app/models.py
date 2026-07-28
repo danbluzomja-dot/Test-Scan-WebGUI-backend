@@ -38,6 +38,17 @@ class User(UserMixin, db.Model):
         return f"<User {self.username}>"
 
 
+class Device(db.Model):
+    """Represents a hardware bridge or scanner that can authenticate with an API token."""
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(200), nullable=False)
+    token = db.Column(db.String(255), unique=True, nullable=False, index=True)
+    is_active = db.Column(db.Boolean, default=True)
+
+    def __repr__(self):
+        return f"<Device {self.name}>")
+
+
 class ProcessTemplate(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(200), nullable=False)
@@ -67,11 +78,14 @@ class TravelerLog(db.Model):
     product = db.relationship('Product')
     step_index = db.Column(db.Integer)
     step_name = db.Column(db.String(200))
-    started_by = db.Column(db.Integer, db.ForeignKey('user.id'))
+    started_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
     started_at = db.Column(db.DateTime)
-    completed_by = db.Column(db.Integer, db.ForeignKey('user.id'))
+    completed_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
     completed_at = db.Column(db.DateTime)
+    device_id = db.Column(db.Integer, db.ForeignKey('device.id'), nullable=True)
     notes = db.Column(db.Text)
+
+    device = db.relationship('Device')
 
     def __repr__(self):
         return f"<TravelerLog product={self.product_id} step={self.step_index}>"
