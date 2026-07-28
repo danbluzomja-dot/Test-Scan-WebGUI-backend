@@ -1,0 +1,9 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Production Tracker</title><link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}"></head>
+<body><main class="login"><section class="card"><p class="eyebrow">PRODUCTION CONTROL</p><h1>Sign in to your station</h1>
+<p class="muted">Track travelers, operator badges, QC results, and sensor data.</p>
+<form id="login"><label>Username<input name="username" autocomplete="username" required></label>
+<label>Password<input name="password" type="password" autocomplete="current-password" required></label>
+<button>Sign in</button><p id="message" role="alert"></p></form></section></main>
+<script>document.querySelector('#login').addEventListener('submit',async e=>{e.preventDefault();const body=Object.fromEntries(new FormData(e.target));const r=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});if(r.ok)location='/station';else document.querySelector('#message').textContent=(await r.json()).error;});</script></body></html>
