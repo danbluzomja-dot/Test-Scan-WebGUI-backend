@@ -39,14 +39,24 @@ class User(UserMixin, db.Model):
 
 
 class Device(db.Model):
-    """Represents a hardware bridge or scanner that can authenticate with an API token."""
+    """Represents a hardware bridge or scanner that can authenticate with an API token.
+
+    Tokens are stored as a hash (generate_password_hash) to avoid keeping plaintext tokens in the DB.
+    Use set_token() to set a token and check_token() to verify a presented token.
+    """
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(200), nullable=False)
-    token = db.Column(db.String(255), unique=True, nullable=False, index=True)
+    token_hash = db.Column(db.String(255), unique=True, nullable=False, index=True)
     is_active = db.Column(db.Boolean, default=True)
 
+    def set_token(self, token: str):
+        self.token_hash = generate_password_hash(token)
+
+    def check_token(self, token: str) -> bool:
+        return check_password_hash(self.token_hash, token)
+
     def __repr__(self):
-        return f"<Device {self.name}>")
+        return f"<Device {self.name}>"
 
 
 class ProcessTemplate(db.Model):

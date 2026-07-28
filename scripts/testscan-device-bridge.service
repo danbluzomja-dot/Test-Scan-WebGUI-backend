@@ -1,0 +1,16 @@
+[Unit]
+Description=TestScan Device Bridge
+After=network.target
+
+[Service]
+User=scanuser
+WorkingDirectory=/opt/Test-Scan-WebGUI-backend
+ExecStart=/opt/Test-Scan-WebGUI-backend/.venv/bin/python /opt/Test-Scan-WebGUI-backend/scripts/device_bridge.py --port /dev/ttyACM0 --baud 9600 --server http://localhost:5000 --token YOUR_DEVICE_TOKEN_HERE
+Restart=always
+RestartSec=5
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=testscan-device-bridge
+
+[Install]
+WantedBy=multi-user.target

@@ -1,24 +1,3 @@
-"""Device bridge for Arduino / serial scanners.
-
-This script connects to a serial port (USB/COM) and forwards scanned events to the backend API.
-It supports simple text protocols from devices. It uses badge-based login to obtain a session
-cookie so subsequent start/complete actions are performed as that user.
-
-Supported serial commands (each line should end with a newline):
-- BADGE:<badge_id>           -- Performs badge login (POST /api/auth/login) and keeps session
-- START:<barcode>            -- POST /api/product/<barcode>/start
-- COMPLETE:<barcode>         -- POST /api/product/<barcode>/complete
-- GET:<barcode>              -- GET /api/product/<barcode> and prints JSON
-- TRAVELER:<barcode>         -- Downloads traveler PDF to local file
-
-Example usage:
-  python scripts/device_bridge.py --port /dev/ttyACM0 --baud 9600 --server http://localhost:5000
-
-Notes:
-- The bridge uses requests.Session() to preserve the cookie returned by the badge login endpoint.
-- For production, consider adding device API keys, TLS verification, and stronger authentication.
-"""
-
 import argparse
 import logging
 import os
@@ -33,10 +12,13 @@ logging.basicConfig(level=logging.INFO, format='[%(asctime)s] %(levelname)s: %(m
 logger = logging.getLogger('device-bridge')
 
 
-def make_session(server, badge_id=None):
+def make_session(server, badge_id=None, token=None):
     s = requests.Session()
     s.headers.update({'User-Agent': 'TestScanDeviceBridge/1.0'})
-    if badge_id:
+    if token:
+        s.headers.update({'Authorization': f'Bearer {token}'})
+        logger.info('Using bearer token for device authentication')
+    elif badge_id:
         login_url = urljoin(server, '/api/auth/login')
         try:
             r = s.post(login_url, json={'badge_id': badge_id}, timeout=5)
@@ -48,12 +30,12 @@ def make_session(server, badge_id=None):
 
 
 class DeviceBridge:
-    def __init__(self, port, baud, server, badge_id=None, reconnect_delay=2.0):
+    def __init__(self, port, baud, server, badge_id=None, token=None, reconnect_delay=2.0):
         self.port = port
         self.baud = baud
         self.server = server.rstrip('/')
         self.reconnect_delay = reconnect_delay
-        self.session = make_session(self.server, badge_id=badge_id)
+        self.session = make_session(self.server, badge_id=badge_id, token=token)
         self.serial = None
 
     def start(self):
@@ -172,9 +154,10 @@ def main(argv=None):
     parser.add_argument('--server', '-s', default=os.environ.get('DEVICE_SERVER', 'http://localhost:5000'),
                         help='Server base URL (default: http://localhost:5000)')
     parser.add_argument('--badge', help='Optional badge id to log in as on startup (e.g., ADMIN123)')
+    parser.add_argument('--token', help='Optional device API token (Bearer) to use instead of badge login')
     args = parser.parse_args(argv or sys.argv[1:])
 
-    bridge = DeviceBridge(port=args.port, baud=args.baud, server=args.server, badge_id=args.badge)
+    bridge = DeviceBridge(port=args.port, baud=args.baud, server=args.server, badge_id=args.badge, token=args.token)
     bridge.start()
 
 
